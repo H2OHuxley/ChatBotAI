@@ -1,1 +1,455 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ayburnt Chatbot</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --fg: #e5e7eb;
+      --card-bg: rgba(15, 23, 42, 0.95);
+      --card-bg2: rgba(15, 23, 42, 0.98);
+      --accent: #22c55e;
+      --accent-text: #022c22;
+      --border: rgba(148, 163, 184, 0.4);
+      --bubble-bg: #020617;
+    }
+
+    body.light-theme {
+      --bg: #f3f4f6;
+      --fg: #111827;
+      --card-bg: #ffffff;
+      --card-bg2: #f9fafb;
+      --accent: #16a34a;
+      --accent-text: #ecfdf5;
+      --border: #e5e7eb;
+      --bubble-bg: #f3f4f6;
+    }
+
+    body.dark-theme {
+      --bg: #0f172a;
+      --fg: #e5e7eb;
+      --card-bg: rgba(15, 23, 42, 0.95);
+      --card-bg2: rgba(15, 23, 42, 0.98);
+      --accent: #22c55e;
+      --accent-text: #022c22;
+      --border: rgba(148, 163, 184, 0.4);
+      --bubble-bg: #020617;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 620px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .chat-header span {
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--fg);
+    }
+
+    .icon-btn:hover {
+      background: rgba(148, 163, 184, 0.12);
+    }
+
+    .chat-messages {
+      padding: 16px;
+      height: 400px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+      background: radial-gradient(
+          circle at top left,
+          rgba(148, 163, 184, 0.14),
+          transparent 55%
+        ),
+        radial-gradient(
+          circle at bottom right,
+          rgba(148, 163, 184, 0.12),
+          transparent 55%
+        );
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: var(--accent-text);
+      border-bottom-right-radius: 2px;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: var(--bubble-bg);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 2px;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      background: var(--card-bg2);
+      align-items: center;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: transparent;
+      color: var(--fg);
+      outline: none;
+      font-size: 14px;
+    }
+
+    .chat-input input::placeholder {
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .chat-input button {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: var(--accent-text);
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .chat-input button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    #micBtn {
+      padding-inline: 10px;
+      background: transparent;
+      color: var(--fg);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-weight: 500;
+    }
+
+    .status {
+      font-size: 12px;
+      color: #9ca3af;
+      padding: 4px 14px 8px;
+    }
+  </style>
+</head>
+<body class="dark-theme">
+  <div class="chat-container">
+    <div class="chat-header">
+      <span>💬 Ayburnt Chatbot</span>
+      <div class="header-actions">
+        <button id="themeToggle" class="icon-btn" type="button">
+          ☀️ Light
+        </button>
+        <button id="speechToggle" class="icon-btn" type="button">
+          🔊 Voice: Off
+        </button>
+      </div>
+    </div>
+
+    <div id="chatMessages" class="chat-messages">
+      <div class="message bot">
+        Hi! I'm a simple AI chatbot powered by OpenAI. Ask me anything. ✨
+      </div>
+    </div>
+
+    <div class="status" id="statusText"></div>
+
+    <div class="chat-input">
+      <input
+        type="text"
+        id="userInput"
+        placeholder="Type your message and press Enter..."
+        autocomplete="off"
+      />
+      <button id="micBtn" type="button">🎤</button>
+      <button id="sendBtn" type="button">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatMessages = document.getElementById("chatMessages");
+    const userInput = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const statusText = document.getElementById("statusText");
+    const themeToggle = document.getElementById("themeToggle");
+    const speechToggle = document.getElementById("speechToggle");
+    const micBtn = document.getElementById("micBtn");
+
+    const STORAGE_KEY = "ayburnt_chat_history_v1";
+    const THEME_KEY = "ayburnt_theme_v1";
+
+    let history = [];
+    let speechEnabled = false;
+
+    // ----- Conversation history (localStorage) -----
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        history = JSON.parse(raw);
+        history.forEach((msg) => {
+          appendMessage(msg.text, msg.sender, false);
+        });
+      } catch (e) {
+        console.warn("Failed to load history", e);
+      }
+    }
+
+    function saveHistory() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      } catch (e) {
+        console.warn("Failed to save history", e);
+      }
+    }
+
+    // ----- Theme handling -----
+    function applyTheme(theme) {
+      document.body.classList.remove("light-theme", "dark-theme");
+      document.body.classList.add(theme);
+      if (theme === "dark-theme") {
+        themeToggle.textContent = "☀️ Light";
+      } else {
+        themeToggle.textContent = "🌙 Dark";
+      }
+    }
+
+    const savedTheme = localStorage.getItem(THEME_KEY) || "dark-theme";
+    applyTheme(savedTheme);
+
+    themeToggle.addEventListener("click", () => {
+      const nextTheme = document.body.classList.contains("dark-theme")
+        ? "light-theme"
+        : "dark-theme";
+      localStorage.setItem(THEME_KEY, nextTheme);
+      applyTheme(nextTheme);
+    });
+
+    // ----- Speech Synthesis (Text-to-Speech) -----
+    function speak(text) {
+      if (!speechEnabled) return;
+      if (!("speechSynthesis" in window)) {
+        alert("Text-to-speech is not supported in this browser.");
+        speechEnabled = false;
+        speechToggle.textContent = "🔊 Voice: Off";
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
+
+    speechToggle.addEventListener("click", () => {
+      speechEnabled = !speechEnabled;
+      speechToggle.textContent = speechEnabled ? "🔊 Voice: On" : "🔊 Voice: Off";
+      if (speechEnabled && !("speechSynthesis" in window)) {
+        alert("Text-to-speech is not supported in this browser.");
+        speechEnabled = false;
+        speechToggle.textContent = "🔊 Voice: Off";
+      }
+    });
+
+    // ----- Append message helpers -----
+    function appendMessage(text, sender, save = true) {
+      const div = document.createElement("div");
+      div.classList.add("message", sender);
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      if (save) {
+        history.push({ sender, text });
+        saveHistory();
+      }
+    }
+
+    // Streaming (fake) for bot message: typewriter effect
+    function appendStreamingMessage(text, sender = "bot") {
+      const div = document.createElement("div");
+      div.classList.add("message", sender);
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      // Save full text to history once
+      history.push({ sender, text });
+      saveHistory();
+
+      let i = 0;
+      const delay = 18; // ms per character
+      const interval = setInterval(() => {
+        div.textContent += text[i];
+        i++;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        if (i >= text.length) {
+          clearInterval(interval);
+          // speak after full message is rendered
+          speak(text);
+        }
+      }, delay);
+    }
+
+    // ----- Speech Recognition (mic) -----
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognizer = null;
+
+    if (SpeechRecognition) {
+      recognizer = new SpeechRecognition();
+      recognizer.lang = "en-US";
+      recognizer.interimResults = false;
+
+      recognizer.onstart = () => {
+        statusText.textContent = "Listening...";
+      };
+
+      recognizer.onend = () => {
+        statusText.textContent = "";
+      };
+
+      recognizer.onerror = (event) => {
+        console.warn("Speech error:", event.error);
+        statusText.textContent = "Speech error. Try again.";
+        setTimeout(() => (statusText.textContent = ""), 1500);
+      };
+
+      recognizer.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        userInput.value = transcript;
+        sendMessage();
+      };
+    }
+
+    micBtn.addEventListener("click", () => {
+      if (!recognizer) {
+        alert("Speech recognition is not supported in this browser.");
+        return;
+      }
+      recognizer.start();
+    });
+
+    // ----- Main send logic -----
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      appendMessage(message, "user"); // user message + save to history
+      userInput.value = "";
+      userInput.focus();
+
+      sendBtn.disabled = true;
+      micBtn.disabled = true;
+      statusText.textContent = "Thinking...";
+
+      try {
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message }),
+        });
+
+        const data = await res.json();
+
+        if (data.reply) {
+          // streaming effect for bot reply
+          appendStreamingMessage(data.reply, "bot");
+        } else if (data.error) {
+          appendMessage("Error: " + data.error, "bot");
+        }
+      } catch (err) {
+        console.error(err);
+        appendMessage("Network error. Please try again.", "bot");
+      } finally {
+        sendBtn.disabled = false;
+        micBtn.disabled = false;
+        statusText.textContent = "";
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+
+    userInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Load previous chat from localStorage on page load
+    loadHistory();
+  </script>
+</body>
+</html>
